@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Rentèè Yönetim Paneli</title>
+  <style>
+    :root { --cream:#f6f0e8; --wine:#6e263a; --ink:#201b1a; }
+    body { margin:0; background:var(--cream); color:var(--ink); font-family:Arial,sans-serif; }
+    header { background:var(--wine); color:white; padding:28px 6vw; display:flex; justify-content:space-between; align-items:center; }
+    header a { color:white; } main { padding:36px 6vw; }
+    .summary { display:flex; gap:14px; margin-bottom:20px; }
+    .box { background:white; padding:18px; border-radius:12px; box-shadow:0 8px 24px #6e263a18; }
+    table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; }
+    th,td { padding:14px; text-align:left; border-bottom:1px solid #ead9d5; }
+    th { background:#ead9d5; color:var(--wine); }
+    .empty { text-align:center; padding:28px; }
+    @media(max-width:760px) { table { font-size:13px; } th,td { padding:8px; } }
+  </style>
+</head>
+<body>
+  <header><strong>Rentèè | Lead Yönetimi</strong><a href="/">Asistana dön</a></header>
+  <main>
+    <div class="summary"><div class="box">Toplam lead: <strong id="toplam">0</strong></div></div>
+    <table>
+      <thead><tr><th>İsim</th><th>Telefon</th><th>İlgi alanı</th><th>Mesaj</th><th>Tarih</th></tr></thead>
+      <tbody id="liste"><tr><td class="empty" colspan="5">Yükleniyor...</td></tr></tbody>
+    </table>
+  </main>
+  <script>
+    async function leadleriGetir() {
+      const liste = document.querySelector('#liste');
+      try {
+        const response = await fetch('/api/leads');
+        const data = await response.json();
+        if (!data.basari) throw new Error(data.hata);
+        document.querySelector('#toplam').textContent = data.leadler.length;
+        if (!data.leadler.length) {
+          liste.innerHTML = '<tr><td class="empty" colspan="5">Henüz kayıt yok.</td></tr>';
+          return;
+        }
+        liste.innerHTML = data.leadler.map(lead => `<tr>
+          <td>${guvenli(lead.isim)}</td><td>${guvenli(lead.telefon)}</td>
+          <td>${guvenli(lead.ilgi_alani || '-')}</td><td>${guvenli(lead.mesaj || '-')}</td>
+          <td>${guvenli(lead.tarih)}</td></tr>`).join('');
+      } catch (_) { liste.innerHTML = '<tr><td class="empty" colspan="5">Kayıtlar alınamadı.</td></tr>'; }
+    }
+    function guvenli(deger) { const div=document.createElement('div'); div.textContent=deger; return div.innerHTML; }
+    leadleriGetir();
+  </script>
+</body>
+</html>

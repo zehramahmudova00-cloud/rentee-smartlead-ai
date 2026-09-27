@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rentèè Akıllı Satış Asistanı</title>
+  <style>
+    :root { --cream:#f6f0e8; --wine:#6e263a; --ink:#201b1a; --white:#fffdf9; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); font-family:Arial,sans-serif; background:linear-gradient(135deg,var(--cream),#ead9d5); min-height:100vh; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:24px 7vw; }
+    .logo { font:900 32px Georgia,serif; color:var(--wine); letter-spacing:2px; }
+    header a { color:var(--wine); text-decoration:none; font-weight:700; }
+    main { display:grid; grid-template-columns:1fr 1fr; gap:42px; align-items:center; padding:6vh 7vw 10vh; }
+    h1 { font:700 clamp(42px,6vw,76px) Georgia,serif; margin:0 0 18px; color:var(--wine); }
+    .slogan { font-size:21px; line-height:1.6; max-width:560px; }
+    .tags span { display:inline-block; border:1px solid var(--wine); border-radius:20px; padding:8px 13px; margin:5px; }
+    .card { background:rgba(255,253,249,.72); border:1px solid rgba(255,255,255,.7); box-shadow:0 22px 55px rgba(63,22,34,.16); backdrop-filter:blur(12px); padding:26px; border-radius:24px; }
+    h2 { margin-top:0; color:var(--wine); }
+    input, textarea { width:100%; margin:6px 0; padding:12px; border:1px solid #cfb7bc; border-radius:10px; font:inherit; background:var(--white); }
+    textarea { min-height:86px; resize:vertical; }
+    button { width:100%; padding:12px; margin:6px 0 16px; border:0; border-radius:10px; color:white; background:var(--wine); font-weight:700; cursor:pointer; }
+    #cevap, #durum { min-height:24px; line-height:1.45; }
+    .label { display:block; margin-top:10px; font-size:13px; font-weight:700; }
+    @media(max-width:800px) { main { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header><div class="logo">Rentèè</div><a href="/dashboard">Yönetim Paneli</a></header>
+  <main>
+    <section>
+      <h1>Tarzını satın alma, kirala.</h1>
+      <p class="slogan">Özel anların için doğru parçayı birlikte bulalım. Asistanımıza beden, stil, teslimat veya iade hakkında sorabilirsin.</p>
+      <div class="tags"><span>Elbiseler</span><span>Çantalar</span><span>Aksesuarlar</span><span>Sürdürülebilir moda</span></div>
+    </section>
+    <section class="card">
+      <h2>Akıllı Satış Asistanı</h2>
+      <label class="label" for="mesaj">Sorunuz</label>
+      <textarea id="mesaj" placeholder="Örneğin: Mezuniyet için bordo uzun elbise arıyorum."></textarea>
+      <button id="sor">Asistana sor</button>
+      <p id="cevap" aria-live="polite"></p>
+      <hr>
+      <h2>Sana ulaşalım</h2>
+      <input id="isim" placeholder="Adınız">
+      <input id="telefon" placeholder="Telefonunuz">
+      <input id="ilgi" placeholder="İlgi alanınız (ör. abiye)">
+      <button id="kaydet">Bilgilerimi kaydet</button>
+      <p id="durum" aria-live="polite"></p>
+    </section>
+  </main>
+  <script>
+    const mesaj = document.querySelector('#mesaj');
+    const cevap = document.querySelector('#cevap');
+    const durum = document.querySelector('#durum');
+
+    document.querySelector('#sor').addEventListener('click', async () => {
+      cevap.textContent = 'Yanıt hazırlanıyor...';
+      try {
+        const response = await fetch('/api/sohbet', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({mesaj:mesaj.value, gecmis:[]})
+        });
+        const data = await response.json();
+        cevap.textContent = data.basari ? data.cevap : data.hata;
+      } catch (_) { cevap.textContent = 'Bağlantı kurulamadı.'; }
+    });
+
+    document.querySelector('#kaydet').addEventListener('click', async () => {
+      durum.textContent = 'Kaydediliyor...';
+      try {
+        const response = await fetch('/api/leads', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            isim:document.querySelector('#isim').value,
+            telefon:document.querySelector('#telefon').value,
+            mesaj:mesaj.value,
+            ilgi_alani:document.querySelector('#ilgi').value
+          })
+        });
+        const data = await response.json();
+        durum.textContent = data.basari ? data.mesaj : data.hata;
+      } catch (_) { durum.textContent = 'Bağlantı kurulamadı.'; }
+    });
+  </script>
+</body>
+</html>
