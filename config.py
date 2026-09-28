@@ -14,6 +14,7 @@ class Config:
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
     AI_PROVIDER = os.environ.get("AI_PROVIDER", "groq")
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
+    ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
     BUSINESS_CONTEXT = os.environ.get(
         "BUSINESS_CONTEXT",
         """
