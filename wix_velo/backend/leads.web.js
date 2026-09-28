@@ -8,8 +8,9 @@ const getSecret = elevate(secrets.getSecretValue);
 const API = 'https://rentee-smartlead-ai.onrender.com/api';
 
 export const tumLeadler = webMethod(Permissions.Admin, async () => {
-  const token = await getSecret('RENTEE_ADMIN_TOKEN');
-  const response = await fetch(`${API}/leads`, {
+  const secretResponse = await getSecret('RENTEE_ADMIN_TOKEN');
+  const token = secretResponse.value;
+  const response = await fetch(API + '/leads', {
     headers: { 'X-Admin-Token': token }
   });
   if (!response.ok) throw new Error('Lead kayıtları getirilemedi.');
