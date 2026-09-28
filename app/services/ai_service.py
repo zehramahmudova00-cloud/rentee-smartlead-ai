@@ -48,21 +48,54 @@ class AIService:
             raise AIServiceError("Groq yanıtı alınamadı.") from error
 
     def yanit_uret(self, mesaj, gecmis=None):
-        """Groq kullanılabilir değilse proje demo yanıtıyla devam eder."""
+        """Groq kullanılamazsa soruya uygun güvenli demo yanıtı üretir."""
         if not self.api_key:
-            return self._demo_yaniti()
+            return self._demo_yaniti(mesaj)
         mesajlar = self._mesajlari_hazirla(mesaj, gecmis or [])
         try:
             return self._groq_istegi(mesajlar)
         except AIServiceError:
-            return self._demo_yaniti()
+            return self._demo_yaniti(mesaj)
 
-    def _demo_yaniti(self):
+    def _demo_yaniti(self, mesaj):
+        metin = mesaj.lower()
+
+        if any(kelime in metin for kelime in ("merhaba", "selam", "günaydın")):
+            return (
+                "Merhaba! Rentèè stil asistanıyım. Davet türünü, tercih ettiğin "
+                "rengi ve bedenini yazarsan sana uygun bir kiralık parça önerebilirim."
+            )
+        if any(kelime in metin for kelime in ("teslimat", "kargo", "ne zaman")):
+            return (
+                "Teslimat süresi ürün ve kiralama tarihine göre değişir. Etkinlik "
+                "tarihini yazarsan uygun kiralama aralığını birlikte planlayabiliriz."
+            )
+        if any(kelime in metin for kelime in ("iade", "değişim", "geri gönder")):
+            return (
+                "Kiraladığın ürünü kullanım süresi sonunda belirtilen iade yöntemiyle "
+                "geri gönderebilirsin. Sipariş ve tarih bilgini yazarsan yardımcı olayım."
+            )
+        if any(kelime in metin for kelime in ("beden", "ölçü", "kaç beden")):
+            return (
+                "Doğru beden için göğüs, bel ve basen ölçülerini santimetre olarak yaz. "
+                "Ürün ölçüleriyle karşılaştırarak en uygun bedeni önerebilirim."
+            )
+        if any(kelime in metin for kelime in ("mezuniyet", "düğün", "nişan", "davet")):
+            return (
+                "Etkinliğin için şık bir görünüm hazırlayabiliriz. Renk tercihini, "
+                "bedenini ve uzun ya da kısa model istediğini yaz; sana kombin önereyim."
+            )
+        if any(kelime in metin for kelime in ("bordo", "elbise", "kombin", "saten")):
+            return (
+                "Bordo bir elbiseyi altın tonlu zarif aksesuarlar, nude ayakkabı ve "
+                "sade bir çantayla tamamlayabilirsin. Bedenini yazarsan modeli netleştirelim."
+            )
+        if any(kelime in metin for kelime in ("fiyat", "ücret", "kiralama", "kirala")):
+            return (
+                "Rentèè’de fiyat ürün, marka ve kiralama süresine göre belirlenir. "
+                "Aradığın ürünü ve kaç gün kiralamak istediğini yazarsan yardımcı olayım."
+            )
         return (
-            "Rentèè'de bordo elbise için midi boy, zarif drapeli veya saten "
-            "modelleri önerebilirim. Davet türünü ve bedenini yazarsan "
-            "sana daha uygun bir seçenek bulalım."
+            "Sana doğru öneriyi verebilmem için aradığın ürünü, etkinlik türünü, "
+            "renk tercihini ve bedenini biraz daha anlatır mısın?"
         )
-
-
-ai_service = AIService()
