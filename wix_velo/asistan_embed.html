@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f6f0e8;color:#201b1a;font-family:Arial,sans-serif}
+    main{height:100vh;min-height:520px;border:2px solid #6e263a;display:flex;flex-direction:column}
+    header{background:#6e263a;color:#fff;padding:18px 20px;font:24px Georgia,serif;letter-spacing:2px}
+    #messages{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+    .msg{max-width:85%;padding:12px 14px;line-height:1.45;background:#fff;border:1px solid #d8cbc0}
+    .user{align-self:flex-end;background:#6e263a;color:#fff}.bot{align-self:flex-start}
+    form{padding:12px 18px;border-top:1px solid #d8cbc0;display:flex;gap:8px;flex-wrap:wrap}
+    input{min-width:0;flex:1;border:1px solid #6e263a;padding:12px;font:inherit}
+    button{border:0;background:#6e263a;color:#fff;padding:12px 16px;cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}.lead{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .lead input:nth-child(3){grid-column:1/-1}.lead button{grid-column:1/-1}
+    #status{font-size:13px;margin:0 18px 12px;min-height:16px}
+    @media(max-width:540px){header{font-size:19px}.lead{grid-template-columns:1fr}.lead input:nth-child(3){grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main>
+    <header>RENTÈÈ ASİSTAN</header>
+    <section id="messages" aria-live="polite"><div class="msg bot">Merhaba! Nasıl bir davet veya görünüm için hazırlanıyorsun?</div></section>
+    <form id="chat"><input id="message" aria-label="Mesaj" placeholder="Mesajını yaz..." required><button type="submit">Gönder</button></form>
+    <form id="lead" class="lead"><input id="name" aria-label="Ad soyad" placeholder="Ad soyad" required><input id="phone" aria-label="Telefon" placeholder="Telefon" required><input id="interest" aria-label="İlgi alanı" placeholder="İlgilendiğin ürün (isteğe bağlı)"><button type="submit">İletişim bilgilerimi kaydet</button></form>
+    <p id="status" role="status"></p>
+  </main>
+  <script>
+    const API = 'https://rentee-smartlead-ai.onrender.com/api';
+    const messages = document.getElementById('messages');
+    const status = document.getElementById('status');
+    const history = [];
+    async function send(type, payload) {
+      const response = await fetch(`${API}/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return response.json();
+    }
+    function add(text, kind) {
+      const item = document.createElement('div');
+      item.className = 'msg ' + kind;
+      item.textContent = text;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    }
+    document.getElementById('chat').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector('button');
+      const input = document.getElementById('message');
+      const message = input.value.trim();
+      if (!message) return;
+      input.value = '';
+      add(message, 'user');
+      button.disabled = true;
+      try {
+        const data = await send('sohbet', { mesaj: message, gecmis: history });
+        const answer = data.basari ? data.cevap : (data.hata || 'Yanıt alınamadı.');
+        add(answer, 'bot');
+        if (data.basari) history.push({ role: 'user', content: message }, { role: 'assistant', content: answer });
+      } catch (_) { add('Bağlantı kurulamadı. Lütfen tekrar dene.', 'bot'); }
+      button.disabled = false;
+    });
+    document.getElementById('lead').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector('button');
+      button.disabled = true;
+      try {
+        const data = await send('leads', {
+          isim: document.getElementById('name').value.trim(),
+          telefon: document.getElementById('phone').value.trim(),
+          ilgi_alani: document.getElementById('interest').value.trim(),
+          mesaj: history.filter((item) => item.role === 'user').map((item) => item.content).join(' | ').slice(0, 500)
+        });
+        status.textContent = data.basari ? 'Bilgilerin kaydedildi, teşekkürler.' : (data.hata || 'Kayıt başarısız.');
+        if (data.basari) form.reset();
+      } catch (_) { status.textContent = 'Bağlantı kurulamadı. Lütfen tekrar dene.'; }
+      button.disabled = false;
+    });
+  </script>
+</body>
+</html>

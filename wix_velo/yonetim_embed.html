@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f6f0e8;color:#201b1a;font:15px Arial,sans-serif}
+    header{background:#6e263a;color:white;padding:20px;font:24px Georgia,serif}
+    main{padding:20px}button{background:#6e263a;color:white;border:0;padding:10px 16px;cursor:pointer}
+    table{width:100%;border-collapse:collapse;background:white;margin-top:16px}
+    th,td{padding:12px;text-align:left;border-bottom:1px solid #ead9d5;overflow-wrap:anywhere}
+    th{background:#ead9d5;color:#6e263a}#status{padding:14px;background:white}
+    @media(max-width:600px){table{font-size:12px}th,td{padding:6px}}
+  </style>
+</head>
+<body>
+  <header>Rentèè | Lead Yönetimi</header>
+  <main>
+    <button id="refresh">Kayıtları yenile</button>
+    <p id="status" role="status">Kayıtlar yükleniyor...</p>
+    <table>
+      <thead><tr><th>İsim</th><th>Telefon</th><th>İlgi alanı</th><th>Mesaj</th><th>Tarih</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+  <script>
+    const status = document.getElementById('status');
+    const rows = document.getElementById('rows');
+    function load() { parent.postMessage({ type: 'getLeads' }, '*'); }
+    window.addEventListener('message', (event) => {
+      if (event.data?.type !== 'leadResult') return;
+      const result = event.data.result;
+      rows.replaceChildren();
+      if (!result?.basari) {
+        status.textContent = result?.hata || 'Kayıtlar alınamadı.';
+        return;
+      }
+      status.textContent = `Toplam lead: ${result.leadler.length}`;
+      for (const lead of result.leadler) {
+        const tr = document.createElement('tr');
+        for (const key of ['isim', 'telefon', 'ilgi_alani', 'mesaj', 'tarih']) {
+          const td = document.createElement('td');
+          td.textContent = lead[key] || '-';
+          tr.appendChild(td);
+        }
+        rows.appendChild(tr);
+      }
+    });
+    document.getElementById('refresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
