@@ -1,6 +1,4 @@
-import { fetch } from 'wix-fetch';
-
-const API = 'https://PROJENIZ.onrender.com/api';
+import { tumLeadler } from 'backend/leads.web';
 
 $w.onReady(async function () {
   $w('#leadRepeater').onItemReady(($item, itemData) => {
@@ -11,8 +9,7 @@ $w.onReady(async function () {
   });
 
   try {
-    const response = await fetch(`${API}/leads`);
-    const data = await response.json();
+    const data = await tumLeadler();
     if (!data.basari) throw new Error(data.hata);
 
     $w('#leadRepeater').data = data.leadler.map((lead) => ({
