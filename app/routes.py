@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, render_template, request
+from hmac import compare_digest
+
+from flask import Blueprint, current_app, jsonify, render_template, request
 
 from app.database import lead_ekle, tum_leadler
 from app.services.ai_service import AIServiceError, ai_service
@@ -67,6 +69,10 @@ def lead_olustur():
 
 @api_bp.get("/leads")
 def leadleri_listele():
+    token = current_app.config.get("ADMIN_TOKEN", "")
+    supplied = request.headers.get("X-Admin-Token", "")
+    if not token or not supplied or not compare_digest(token, supplied):
+        return jsonify({"basari": False, "hata": "Erişim reddedildi."}), 403
     try:
         return jsonify({"basari": True, "leadler": tum_leadler()})
     except RuntimeError:
