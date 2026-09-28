@@ -12,7 +12,7 @@ class AIService:
         self.api_key = Config.GROQ_API_KEY
         self.business_context = Config.BUSINESS_CONTEXT
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
-        self.model = "llama-3.1-8b-instant"
+        self.model = "openai/gpt-oss-20b"
 
     def _mesajlari_hazirla(self, mesaj, gecmis):
         hazir_mesajlar = [{"role": "system", "content": self.business_context}]
