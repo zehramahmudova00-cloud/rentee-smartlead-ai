@@ -1,7 +1,6 @@
 import { fetch } from 'wix-fetch';
 
-// Render yayınından sonra bu adresi kendi canlı adresinizle değiştirin.
-const API = 'https://PROJENIZ.onrender.com/api';
+const API = 'https://rentee-smartlead-ai.onrender.com/api';
 
 $w.onReady(function () {
   $w('#sorButonu').onClick(async () => {
