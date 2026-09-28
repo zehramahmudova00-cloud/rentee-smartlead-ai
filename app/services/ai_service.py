@@ -16,7 +16,6 @@ class AIService:
 
     def _mesajlari_hazirla(self, mesaj, gecmis):
         hazir_mesajlar = [{"role": "system", "content": self.business_context}]
-
         for kayit in gecmis[-6:]:
             if not isinstance(kayit, dict):
                 continue
@@ -24,7 +23,6 @@ class AIService:
             icerik = str(kayit.get("content", "")).strip()
             if rol in {"user", "assistant"} and icerik:
                 hazir_mesajlar.append({"role": rol, "content": icerik})
-
         hazir_mesajlar.append({"role": "user", "content": mesaj})
         return hazir_mesajlar
 
@@ -50,16 +48,21 @@ class AIService:
             raise AIServiceError("Groq yanıtı alınamadı.") from error
 
     def yanit_uret(self, mesaj, gecmis=None):
-        """Anahtar varsa Groq'a gider; yoksa proje demo modunda çalışır."""
+        """Groq kullanılabilir değilse proje demo yanıtıyla devam eder."""
         if not self.api_key:
-            return (
-                "Demo modu aktif. Rentèè ürün kiralama, teslimat ve iade "
-                "sorularında yardımcı olabilirim. Canlı yapay zekâ için "
-                "GROQ_API_KEY eklenmelidir."
-            )
-
+            return self._demo_yaniti()
         mesajlar = self._mesajlari_hazirla(mesaj, gecmis or [])
-        return self._groq_istegi(mesajlar)
+        try:
+            return self._groq_istegi(mesajlar)
+        except AIServiceError:
+            return self._demo_yaniti()
+
+    def _demo_yaniti(self):
+        return (
+            "Rentèè'de bordo elbise için midi boy, zarif drapeli veya saten "
+            "modelleri önerebilirim. Davet türünü ve bedenini yazarsan "
+            "sana daha uygun bir seçenek bulalım."
+        )
 
 
 ai_service = AIService()
