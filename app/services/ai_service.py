@@ -99,3 +99,5 @@ class AIService:
             "Sana doğru öneriyi verebilmem için aradığın ürünü, etkinlik türünü, "
             "renk tercihini ve bedenini biraz daha anlatır mısın?"
         )
+
+ai_service = AIService()
