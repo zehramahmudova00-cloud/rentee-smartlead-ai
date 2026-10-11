@@ -19,7 +19,7 @@ def create_app(config_name="development", test_config=None):
         for origin in app.config["CORS_ORIGINS"].split(",")
         if origin.strip()
     ]
-    CORS(app, resources={r"/api/*": {"origins": origins}})
+    CORS(app)
 
     with app.app_context():
         init_db(app)
