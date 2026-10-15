@@ -1,4 +1,11 @@
-from flask import Blueprint, jsonify, render_template, request
+import re
+
+from flask import (
+    Blueprint,
+    jsonify,
+    render_template,
+    request,
+)
 
 from app.database import lead_ekle, tum_leadler
 from app.services.ai_service import AIServiceError, ai_service
@@ -20,7 +27,7 @@ def dashboard():
 
 @api_bp.post("/sohbet")
 def sohbet():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
 
     if not isinstance(data, dict):
         return jsonify({
@@ -63,7 +70,7 @@ def sohbet():
 
 @api_bp.post("/leads")
 def lead_olustur():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
 
     if not isinstance(data, dict):
         return jsonify({
@@ -72,22 +79,32 @@ def lead_olustur():
         }), 400
 
     isim = str(data.get("isim") or "").strip()
+    eposta = str(data.get("eposta") or "").strip()
     telefon = str(data.get("telefon") or "").strip()
     mesaj = str(data.get("mesaj") or "").strip()
     ilgi_alani = str(data.get("ilgi_alani") or "").strip()
 
-    if not isim or not telefon:
+    if not isim or not eposta or not telefon:
         return jsonify({
             "basari": False,
-            "hata": "İsim ve telefon alanları zorunludur."
+            "hata": (
+                "İsim, e-posta ve telefon alanları zorunludur."
+            )
+        }), 400
+
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", eposta):
+        return jsonify({
+            "basari": False,
+            "hata": "Geçerli bir e-posta adresi girin."
         }), 400
 
     try:
         lead_id = lead_ekle(
-            isim,
-            telefon,
-            mesaj,
-            ilgi_alani
+            isim=isim,
+            telefon=telefon,
+            mesaj=mesaj,
+            ilgi_alani=ilgi_alani,
+            eposta=eposta,
         )
 
         return jsonify({
@@ -106,10 +123,13 @@ def lead_olustur():
 @api_bp.get("/leads")
 def leadleri_listele():
     try:
-        return jsonify({
+        yanit = jsonify({
             "basari": True,
             "leadler": tum_leadler()
         })
+
+        yanit.headers["Cache-Control"] = "no-store"
+        return yanit
 
     except RuntimeError:
         return jsonify({
